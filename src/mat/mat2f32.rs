@@ -1,152 +1,183 @@
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign};
 
 use crate::vec::vec2f32::Vec2f32;
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+/// A 2x2 floating point matrix.
+/// Indexing follows row major order, like in most mathematical texts.
+#[derive(Debug, Clone, Copy)]
 pub struct Mat2f32 {
-    /// Values in row major order
-    pub cols: [Vec2f32; 2],
+    pub rows: [[f32; 2]; 2],
 }
 
 impl Mat2f32 {
-    pub fn new_row_major(row1: Vec2f32, row2: Vec2f32) -> Self {
-        Self {
-            cols: [Vec2f32::new(row1.x, row2.x), Vec2f32::new(row1.y, row2.y)],
-        }
+    /// Creates a new matrix with user defined elements.
+    /// The user defined elements are in row major order.
+    pub fn new(rows: [[f32; 2]; 2]) -> Self {
+        Self { rows }
     }
 
-    pub fn new_column_major(col1: Vec2f32, col2: Vec2f32) -> Self {
-        Self { cols: [col1, col2] }
+    /// Creates a new matrix with user defined elements.
+    /// The user defined elements are in column major order.
+    pub fn new_from_cols(cols: [[f32; 2]; 2]) -> Self {
+        Self::new(cols).transposed()
     }
 
+    /// Creates a new matrix with all elements equal to 0.0.
     pub fn zero() -> Self {
         Self {
-            cols: [Vec2f32::zero(); 2],
+            rows: [[0.0, 0.0], [0.0, 0.0]],
         }
     }
 
+    /// Creates a new identity matrix.
     pub fn identity() -> Self {
         Self {
-            cols: [Vec2f32::new(1.0, 0.0), Vec2f32::new(0.0, 1.0)],
+            rows: [[1.0, 0.0], [0.0, 1.0]],
         }
     }
 
-    pub fn transpose(&mut self) {
-        self.cols = self.transposed().cols;
+    /// Returns self but transposed
+    /// (Rows are now columns and columns are now rows).
+    pub fn transposed(&self) -> Self {
+        Self {
+            rows: [[self[0][0], self[1][0]], [self[0][1], self[1][1]]],
+        }
     }
 
-    pub fn transposed(&self) -> Self {
-        Self::new_row_major(self.cols[0], self.cols[1])
+    /// Transposes self
+    /// (Rows are now columns and columns are now rows).
+    pub fn transpose(&mut self) {
+        *self = self.transposed()
+    }
+
+    /// Returns the matrix rows as arrays in row major order.
+    pub fn as_row_major(&self) -> [[f32; 2]; 2] {
+        self.rows
+    }
+
+    /// Returns the matrix columns as arrays in column major order.
+    pub fn as_col_major(&self) -> [[f32; 2]; 2] {
+        self.transposed().rows
+    }
+}
+
+impl Index<usize> for Mat2f32 {
+    type Output = [f32; 2];
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.rows[index]
+    }
+}
+
+impl IndexMut<usize> for Mat2f32 {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.rows[index]
     }
 }
 
 impl Add<Mat2f32> for Mat2f32 {
     type Output = Mat2f32;
     fn add(mut self, rhs: Mat2f32) -> Self::Output {
-        self.cols[0] += rhs.cols[0];
-        self.cols[1] += rhs.cols[1];
+        self[0][0] += rhs[0][0];
+        self[0][1] += rhs[0][1];
+        self[1][0] += rhs[1][0];
+        self[1][1] += rhs[1][1];
         self
     }
 }
 
 impl AddAssign<Mat2f32> for Mat2f32 {
     fn add_assign(&mut self, rhs: Mat2f32) {
-        self.cols[0] += rhs.cols[0];
-        self.cols[1] += rhs.cols[1];
+        *self = *self + rhs;
     }
 }
 
 impl Sub<Mat2f32> for Mat2f32 {
     type Output = Mat2f32;
     fn sub(mut self, rhs: Mat2f32) -> Self::Output {
-        self.cols[0] -= rhs.cols[0];
-        self.cols[1] -= rhs.cols[1];
+        self[0][0] -= rhs[0][0];
+        self[0][1] -= rhs[0][1];
+        self[1][0] -= rhs[1][0];
+        self[1][1] -= rhs[1][1];
         self
     }
 }
 
 impl SubAssign<Mat2f32> for Mat2f32 {
     fn sub_assign(&mut self, rhs: Mat2f32) {
-        self.cols[0] -= rhs.cols[0];
-        self.cols[1] -= rhs.cols[1];
-    }
-}
-
-impl Mul<Mat2f32> for Mat2f32 {
-    type Output = Mat2f32;
-    fn mul(self, rhs: Mat2f32) -> Self::Output {
-        let a = self.cols;
-        let b = rhs.cols;
-        Mat2f32 {
-            cols: [
-                Vec2f32::new(
-                    a[0].x * b[0].x + a[1].x * b[0].y,
-                    a[0].y * b[0].x + a[1].y * b[0].y,
-                ),
-                Vec2f32::new(
-                    a[0].x * b[1].x + a[1].x * b[1].y,
-                    a[0].y * b[1].x + a[1].y * b[1].y,
-                ),
-            ],
-        }
-    }
-}
-
-impl MulAssign<Mat2f32> for Mat2f32 {
-    fn mul_assign(&mut self, rhs: Mat2f32) {
-        let result = *self * rhs;
-        self.cols = result.cols;
+        *self = *self - rhs;
     }
 }
 
 impl Mul<f32> for Mat2f32 {
     type Output = Mat2f32;
     fn mul(mut self, scalar: f32) -> Self::Output {
-        self.cols[0] *= scalar;
-        self.cols[1] *= scalar;
+        self[0][0] *= scalar;
+        self[0][1] *= scalar;
+        self[1][0] *= scalar;
+        self[1][1] *= scalar;
         self
     }
 }
 
 impl Mul<Mat2f32> for f32 {
     type Output = Mat2f32;
-    fn mul(self, mut mat: Mat2f32) -> Self::Output {
-        mat.cols[0] *= self;
-        mat.cols[1] *= self;
-        mat
+    fn mul(self, m: Mat2f32) -> Self::Output {
+        m * self
     }
 }
 
 impl MulAssign<f32> for Mat2f32 {
     fn mul_assign(&mut self, scalar: f32) {
-        self.cols[0] *= scalar;
-        self.cols[1] *= scalar;
-    }
-}
-
-impl Mul<Vec2f32> for Mat2f32 {
-    type Output = Vec2f32;
-    fn mul(self, rhs: Vec2f32) -> Self::Output {
-        Vec2f32::new(
-            self.cols[0].x * rhs.x + self.cols[1].x * rhs.y,
-            self.cols[0].y * rhs.x + self.cols[1].y * rhs.y,
-        )
+        *self = *self * scalar;
     }
 }
 
 impl Div<f32> for Mat2f32 {
     type Output = Mat2f32;
     fn div(mut self, scalar: f32) -> Self::Output {
-        self.cols[0] /= scalar;
-        self.cols[1] /= scalar;
+        self[0][0] /= scalar;
+        self[0][1] /= scalar;
+        self[1][0] /= scalar;
+        self[1][1] /= scalar;
         self
     }
 }
 
 impl DivAssign<f32> for Mat2f32 {
     fn div_assign(&mut self, scalar: f32) {
-        self.cols[0] /= scalar;
-        self.cols[1] /= scalar;
+        *self = *self / scalar;
+    }
+}
+
+impl Mul<Mat2f32> for Mat2f32 {
+    type Output = Mat2f32;
+    fn mul(self, rhs: Mat2f32) -> Self::Output {
+        Self::new([
+            [
+                self[0][0] * rhs[0][0] + self[0][1] * rhs[1][0],
+                self[0][0] * rhs[0][1] + self[0][1] * rhs[1][1],
+            ],
+            [
+                self[1][0] * rhs[0][0] + self[1][1] * rhs[1][0],
+                self[1][0] * rhs[0][1] + self[1][1] * rhs[1][1],
+            ],
+        ])
+    }
+}
+
+impl MulAssign<Mat2f32> for Mat2f32 {
+    fn mul_assign(&mut self, rhs: Mat2f32) {
+        *self = *self * rhs;
+    }
+}
+
+impl Mul<Vec2f32> for Mat2f32 {
+    type Output = Vec2f32;
+    fn mul(self, v: Vec2f32) -> Self::Output {
+        Vec2f32::new([
+            self[0][0] * v[0] + self[0][1] * v[1],
+            self[1][0] * v[0] + self[1][1] * v[1],
+        ])
     }
 }
 
@@ -158,133 +189,161 @@ mod tests {
 
     #[test]
     fn matrix_creation() {
-        let m = Mat2f32::new_column_major(Vec2f32::new(1.0, 2.0), Vec2f32::new(3.0, 4.0));
-        assert_eq!(m.cols[0].x, 1.0);
-        assert_eq!(m.cols[0].y, 2.0);
-        assert_eq!(m.cols[1].x, 3.0);
-        assert_eq!(m.cols[1].y, 4.0);
-
-        let m = Mat2f32::new_row_major(Vec2f32::new(1.0, 3.0), Vec2f32::new(2.0, 4.0));
-        assert_eq!(m.cols[0].x, 1.0);
-        assert_eq!(m.cols[0].y, 2.0);
-        assert_eq!(m.cols[1].x, 3.0);
-        assert_eq!(m.cols[1].y, 4.0);
-    }
-
-    #[test]
-    fn zero() {
         let zero = Mat2f32::zero();
-        assert_eq!(zero.cols[0].x, 0.0);
-        assert_eq!(zero.cols[0].y, 0.0);
-        assert_eq!(zero.cols[1].x, 0.0);
-        assert_eq!(zero.cols[1].y, 0.0);
-    }
-
-    #[test]
-    fn identity() {
         let id = Mat2f32::identity();
-        assert_eq!(id.cols[0].x, 1.0);
-        assert_eq!(id.cols[0].y, 0.0);
-        assert_eq!(id.cols[1].x, 0.0);
-        assert_eq!(id.cols[1].y, 1.0);
+        let m = Mat2f32::new([[1.0, 2.0], [3.0, 4.0]]);
+        let t = Mat2f32::new_from_cols([[1.0, 3.0], [2.0, 4.0]]);
+
+        assert_eq!(zero[0][0], 0.0);
+        assert_eq!(zero[0][1], 0.0);
+        assert_eq!(zero[1][0], 0.0);
+        assert_eq!(zero[1][1], 0.0);
+
+        assert_eq!(id[0][0], 1.0);
+        assert_eq!(id[0][1], 0.0);
+        assert_eq!(id[1][0], 0.0);
+        assert_eq!(id[1][1], 1.0);
+
+        assert_eq!(m[0][0], 1.0);
+        assert_eq!(m[0][1], 2.0);
+        assert_eq!(m[1][0], 3.0);
+        assert_eq!(m[1][1], 4.0);
+
+        assert_eq!(t[0][0], 1.0);
+        assert_eq!(t[0][1], 2.0);
+        assert_eq!(t[1][0], 3.0);
+        assert_eq!(t[1][1], 4.0);
     }
 
     #[test]
     fn transpose() {
-        let mut m = Mat2f32::new_column_major(Vec2f32::new(1.0, 2.0), Vec2f32::new(3.0, 4.0));
+        let mut m = Mat2f32::new([[1.0, 2.0], [3.0, 4.0]]);
+        let t = m.transposed();
         m.transpose();
-        assert_eq!(m.cols[0].x, 1.0);
-        assert_eq!(m.cols[0].y, 3.0);
-        assert_eq!(m.cols[1].x, 2.0);
-        assert_eq!(m.cols[1].y, 4.0);
+
+        assert_eq!(t[0][0], 1.0);
+        assert_eq!(t[0][1], 3.0);
+        assert_eq!(t[1][0], 2.0);
+        assert_eq!(t[1][1], 4.0);
+
+        assert_eq!(m[0][0], 1.0);
+        assert_eq!(m[0][1], 3.0);
+        assert_eq!(m[1][0], 2.0);
+        assert_eq!(m[1][1], 4.0);
     }
 
     #[test]
-    fn addition() {
-        let mut one = Mat2f32::new_column_major(Vec2f32::new(1.0, 1.0), Vec2f32::new(1.0, 1.0));
-        let two = one + one;
-        assert_eq!(two.cols[0].x, 2.0);
-        assert_eq!(two.cols[0].y, 2.0);
-        assert_eq!(two.cols[1].x, 2.0);
-        assert_eq!(two.cols[1].y, 2.0);
+    fn as_row_and_col_major() {
+        let m = Mat2f32::new([[1.0, 2.0], [3.0, 4.0]]);
+        let cols = m.as_col_major();
+        let rows = m.as_row_major();
 
-        one += one;
-        assert_eq!(one.cols[0].x, 2.0);
-        assert_eq!(one.cols[0].y, 2.0);
-        assert_eq!(one.cols[1].x, 2.0);
-        assert_eq!(one.cols[1].y, 2.0);
+        assert_eq!(cols[0][0], 1.0);
+        assert_eq!(cols[0][1], 3.0);
+        assert_eq!(cols[1][0], 2.0);
+        assert_eq!(cols[1][1], 4.0);
+
+        assert_eq!(rows[0][0], 1.0);
+        assert_eq!(rows[0][1], 2.0);
+        assert_eq!(rows[1][0], 3.0);
+        assert_eq!(rows[1][1], 4.0);
     }
 
     #[test]
-    fn subtraction() {
-        let one = Mat2f32::new_column_major(Vec2f32::new(1.0, 1.0), Vec2f32::new(1.0, 1.0));
-        let mut zero = one - one;
-        assert_eq!(zero.cols[0].x, 0.0);
-        assert_eq!(zero.cols[0].y, 0.0);
-        assert_eq!(zero.cols[1].x, 0.0);
-        assert_eq!(zero.cols[1].y, 0.0);
-
-        zero -= one;
-        assert_eq!(zero.cols[0].x, -1.0);
-        assert_eq!(zero.cols[0].y, -1.0);
-        assert_eq!(zero.cols[1].x, -1.0);
-        assert_eq!(zero.cols[1].y, -1.0);
+    fn matrix_addition() {
+        let m = Mat2f32::new([[1.0, 2.0], [3.0, 4.0]]);
+        let mut n = Mat2f32::new([[5.0, 6.0], [7.0, 8.0]]);
+        let r = n + m;
+        n += m;
+        assert_eq!(r[0][0], 6.0);
+        assert_eq!(r[0][1], 8.0);
+        assert_eq!(r[1][0], 10.0);
+        assert_eq!(r[1][1], 12.0);
+        assert_eq!(n[0][0], 6.0);
+        assert_eq!(n[0][1], 8.0);
+        assert_eq!(n[1][0], 10.0);
+        assert_eq!(n[1][1], 12.0);
     }
 
     #[test]
-    fn multiplication() {
-        let mut a = Mat2f32::new_column_major(Vec2f32::new(1.0, 3.0), Vec2f32::new(2.0, 4.0));
-        let b = Mat2f32::new_column_major(Vec2f32::new(5.0, 7.0), Vec2f32::new(6.0, 8.0));
-        let c = a * b;
-        assert_eq!(c.cols[0].x, 19.0);
-        assert_eq!(c.cols[0].y, 43.0);
-        assert_eq!(c.cols[1].x, 22.0);
-        assert_eq!(c.cols[1].y, 50.0);
-        a *= b;
-        assert_eq!(a.cols[0].x, 19.0);
-        assert_eq!(a.cols[0].y, 43.0);
-        assert_eq!(a.cols[1].x, 22.0);
-        assert_eq!(a.cols[1].y, 50.0);
+    fn matrix_subtraction() {
+        let m = Mat2f32::new([[1.0, 2.0], [3.0, 4.0]]);
+        let mut n = Mat2f32::new([[5.0, 6.0], [7.0, 8.0]]);
+        let r = m - n;
+        n -= m;
+        assert_eq!(r[0][0], -4.0);
+        assert_eq!(r[0][1], -4.0);
+        assert_eq!(r[1][0], -4.0);
+        assert_eq!(r[1][1], -4.0);
+        assert_eq!(n[0][0], 4.0);
+        assert_eq!(n[0][1], 4.0);
+        assert_eq!(n[1][0], 4.0);
+        assert_eq!(n[1][1], 4.0);
     }
 
     #[test]
     fn scalar_multiplication() {
-        let one = Mat2f32::new_column_major(Vec2f32::new(1.0, 1.0), Vec2f32::new(1.0, 1.0));
-        let mut four: Mat2f32 = 2.0 * one * 2.0;
-        assert_eq!(four.cols[0].x, 4.0);
-        assert_eq!(four.cols[0].y, 4.0);
-        assert_eq!(four.cols[1].x, 4.0);
-        assert_eq!(four.cols[1].y, 4.0);
+        let mut m = Mat2f32::new([[1.0, 2.0], [3.0, 4.0]]);
+        let n = m * 3.0;
+        assert_eq!(n[0][0], 3.0);
+        assert_eq!(n[0][1], 6.0);
+        assert_eq!(n[1][0], 9.0);
+        assert_eq!(n[1][1], 12.0);
 
-        four *= 2.0;
-        assert_eq!(four.cols[0].x, 8.0);
-        assert_eq!(four.cols[0].y, 8.0);
-        assert_eq!(four.cols[1].x, 8.0);
-        assert_eq!(four.cols[1].y, 8.0);
+        let n = 3.0 * m;
+        assert_eq!(n[0][0], 3.0);
+        assert_eq!(n[0][1], 6.0);
+        assert_eq!(n[1][0], 9.0);
+        assert_eq!(n[1][1], 12.0);
+
+        m *= 3.0;
+        assert_eq!(m[0][0], 3.0);
+        assert_eq!(m[0][1], 6.0);
+        assert_eq!(m[1][0], 9.0);
+        assert_eq!(m[1][1], 12.0);
     }
 
     #[test]
     fn scalar_division() {
-        let one = Mat2f32::new_column_major(Vec2f32::new(1.0, 1.0), Vec2f32::new(1.0, 1.0));
-        let mut half: Mat2f32 = one / 2.0;
-        assert_eq!(half.cols[0].x, 0.5);
-        assert_eq!(half.cols[0].y, 0.5);
-        assert_eq!(half.cols[1].x, 0.5);
-        assert_eq!(half.cols[1].y, 0.5);
+        let mut m = Mat2f32::new([[1.0, 2.0], [3.0, 4.0]]);
+        let n = m / 3.0;
+        assert_eq!(n[0][0], 1.0 / 3.0);
+        assert_eq!(n[0][1], 2.0 / 3.0);
+        assert_eq!(n[1][0], 3.0 / 3.0);
+        assert_eq!(n[1][1], 4.0 / 3.0);
 
-        half /= 2.0;
-        assert_eq!(half.cols[0].x, 0.25);
-        assert_eq!(half.cols[0].y, 0.25);
-        assert_eq!(half.cols[1].x, 0.25);
-        assert_eq!(half.cols[1].y, 0.25);
+        m /= 3.0;
+        assert_eq!(m[0][0], 1.0 / 3.0);
+        assert_eq!(m[0][1], 2.0 / 3.0);
+        assert_eq!(m[1][0], 3.0 / 3.0);
+        assert_eq!(m[1][1], 4.0 / 3.0);
     }
 
     #[test]
-    fn multiply_vector() {
-        let a = Mat2f32::new_column_major(Vec2f32::new(1.0, 3.0), Vec2f32::new(2.0, 4.0));
-        let vec = Vec2f32::new(10.0, 5.0);
-        let c = a * vec;
-        assert_eq!(c.x, 20.0);
-        assert_eq!(c.y, 50.0);
+    fn matrix_multiplication() {
+        let mut m = Mat2f32::new([[1.0, 2.0], [3.0, 4.0]]);
+        let n = Mat2f32::new([[5.0, 6.0], [7.0, 8.0]]);
+        let r = m * n;
+        m *= n;
+
+        assert_eq!(r[0][0], 19.0);
+        assert_eq!(r[0][1], 22.0);
+        assert_eq!(r[1][0], 43.0);
+        assert_eq!(r[1][1], 50.0);
+
+        assert_eq!(m[0][0], 19.0);
+        assert_eq!(m[0][1], 22.0);
+        assert_eq!(m[1][0], 43.0);
+        assert_eq!(m[1][1], 50.0);
+    }
+
+    #[test]
+    fn vector_multiplication() {
+        let m = Mat2f32::new([[1.0, 2.0], [3.0, 4.0]]);
+        let v = Vec2f32::new([2.0, 3.0]);
+        let w = m * v;
+
+        assert_eq!(w[0], 8.0);
+        assert_eq!(w[1], 18.0);
     }
 }

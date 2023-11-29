@@ -4,6 +4,10 @@ authors = ["alexdesander"]
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
+description = "Simple, easy to understand and barebones math library for game and graphics development."
 keywords = ["gamedev", "graphics", "math", "matrix", "rotor"]
+categories = ["mathematics", "rendering", "game-development"]
+homepage = "https://github.com/alexdesander/chikage"
+repository = "https://github.com/alexdesander/chikage"
 
 [dependencies]

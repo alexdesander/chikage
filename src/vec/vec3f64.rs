@@ -1,198 +1,147 @@
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign};
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+/// A three dimensional vector.
+#[derive(Debug, Clone, Copy)]
 pub struct Vec3f64 {
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
+    pub coords: [f64; 3],
 }
 
 impl Vec3f64 {
-    pub fn new(x: f64, y: f64, z: f64) -> Self {
-        Self { x, y, z }
+    /// Create a new vector with user defined components.
+    pub fn new(coords: [f64; 3]) -> Self {
+        Self { coords }
     }
 
+    /// Create a new vector with all components equal to 0.0.
     pub fn zero() -> Self {
-        Self {
-            x: 0.0,
-            y: 0.0,
-            z: 0.0,
-        }
+        Self::new([0.0, 0.0, 0.0])
     }
 
-    pub fn one() -> Self {
-        Self {
-            x: 1.0,
-            y: 1.0,
-            z: 1.0,
-        }
+    /// Create a new vector with all components equal to 1.0.
+    pub fn ones() -> Self {
+        Self::new([1.0, 1.0, 1.0])
     }
 
-    pub fn magnitude(&self) -> f64 {
-        (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
+    /// The magnitude of the vector (also known as length).
+    pub fn mag(&self) -> f64 {
+        self.mag_squared().sqrt()
     }
 
-    pub fn magnitude_squared(&self) -> f64 {
-        self.x * self.x + self.y * self.y + self.z * self.z
+    /// The magnitude of the vector (also known as length), but squared.
+    /// This is faster to compute than mag() and useful in some situations.
+    pub fn mag_squared(&self) -> f64 {
+        self[0] * self[0] + self[1] * self[1] + self[2] * self[2]
     }
 
-    pub fn normalize(&mut self) {
-        let mag = self.magnitude();
-        self.x /= mag;
-        self.y /= mag;
-        self.z /= mag;
+    /// Normalizes self
+    /// This makes the vector a unit vector.
+    pub fn norm(&mut self) {
+        let mag = self.mag();
+        *self /= mag;
     }
 
-    pub fn normalized(&self) -> Self {
-        let mag = self.magnitude();
-        Self {
-            x: self.x / mag,
-            y: self.y / mag,
-            z: self.z / mag,
-        }
+    /// Return self but as a normalized vector.
+    /// This returns a unit vector.
+    pub fn normed(&self) -> Self {
+        let mag = self.mag();
+        *self / mag
     }
 
-    pub fn dot(&self, other: Vec3f64) -> f64 {
-        self.x * other.x + self.y * other.y + self.z * other.z
+    /// Calculate the dot product between self and other.
+    pub fn dot(&self, other: Self) -> f64 {
+        self[0] * other[0] + self[1] * other[1] + self[2] * other[2]
     }
+}
 
-    pub fn cross(&self, right: Vec3f64) -> Vec3f64 {
-        Vec3f64 {
-            x: self.y * right.z - self.z * right.y,
-            y: self.z * right.x - self.x * right.z,
-            z: self.x * right.y - self.y * right.x,
-        }
+impl Index<usize> for Vec3f64 {
+    type Output = f64;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.coords[index]
     }
+}
 
-        /// Generates an arbitrary unit (normalized) vector that is perpendicular to self.
-    /// Make sure self is not 0
-    pub fn perpendicular(&self) -> Self {
-        debug_assert!(self.magnitude() != 0.0);
-
-        // 1
-        let mut result = Self::new(0.0, 0.0, 0.0);
-
-        // 2
-        let m = if self.x != 0.0 {
-            0
-        } else if self.y != 0.0 {
-            1
-        } else {
-            2
-        };
-        let n = (m + 1) % 3;
-
-        // 3
-        let x_m = match m {
-            0 => self.x,
-            1 => self.y,
-            2 => self.z,
-            _ => panic!(),
-        };
-        let x_n = match n {
-            0 => self.x,
-            1 => self.y,
-            2 => self.z,
-            _ => panic!(),
-        };
-        match n {
-            0 => result.x = x_m,
-            1 => result.y = x_m,
-            2 => result.z = x_m,
-            _ => {}
-        }
-        match m {
-            0 => result.x = -x_n,
-            1 => result.y = -x_n,
-            2 => result.z = -x_n,
-            _ => {}
-        }
-
-        // 4
-        result.normalize();
-        result
+impl IndexMut<usize> for Vec3f64 {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.coords[index]
     }
 }
 
 impl Add<Vec3f64> for Vec3f64 {
     type Output = Vec3f64;
     fn add(mut self, rhs: Vec3f64) -> Self::Output {
-        self.x += rhs.x;
-        self.y += rhs.y;
-        self.z += rhs.z;
+        self[0] += rhs[0];
+        self[1] += rhs[1];
+        self[2] += rhs[2];
         self
     }
 }
 
 impl AddAssign<Vec3f64> for Vec3f64 {
     fn add_assign(&mut self, rhs: Vec3f64) {
-        self.x += rhs.x;
-        self.y += rhs.y;
-        self.z += rhs.z;
+        *self = *self + rhs;
     }
 }
 
 impl Sub<Vec3f64> for Vec3f64 {
     type Output = Vec3f64;
     fn sub(mut self, rhs: Vec3f64) -> Self::Output {
-        self.x -= rhs.x;
-        self.y -= rhs.y;
-        self.z -= rhs.z;
+        self[0] -= rhs[0];
+        self[1] -= rhs[1];
+        self[2] -= rhs[2];
         self
     }
 }
 
 impl SubAssign<Vec3f64> for Vec3f64 {
     fn sub_assign(&mut self, rhs: Vec3f64) {
-        self.x -= rhs.x;
-        self.y -= rhs.y;
-        self.z -= rhs.z;
-    }
-}
-
-impl Mul<f64> for Vec3f64 {
-    type Output = Vec3f64;
-    fn mul(mut self, scalar: f64) -> Self::Output {
-        self.x *= scalar;
-        self.y *= scalar;
-        self.z *= scalar;
-        self
+        *self = *self - rhs;
     }
 }
 
 impl Mul<Vec3f64> for f64 {
     type Output = Vec3f64;
-    fn mul(self, mut vec: Vec3f64) -> Self::Output {
-        vec.x *= self;
-        vec.y *= self;
-        vec.z *= self;
-        vec
+
+    fn mul(self, mut v: Vec3f64) -> Self::Output {
+        v[0] *= self;
+        v[1] *= self;
+        v[2] *= self;
+        v
+    }
+}
+
+impl Mul<f64> for Vec3f64 {
+    type Output = Vec3f64;
+
+    fn mul(self, scalar: f64) -> Self::Output {
+        scalar * self
     }
 }
 
 impl MulAssign<f64> for Vec3f64 {
     fn mul_assign(&mut self, scalar: f64) {
-        self.x *= scalar;
-        self.y *= scalar;
-        self.z *= scalar;
+        self[0] *= scalar;
+        self[1] *= scalar;
+        self[2] *= scalar;
     }
 }
 
 impl Div<f64> for Vec3f64 {
     type Output = Vec3f64;
+
     fn div(mut self, scalar: f64) -> Self::Output {
-        self.x /= scalar;
-        self.y /= scalar;
-        self.z /= scalar;
+        self[0] /= scalar;
+        self[1] /= scalar;
+        self[2] /= scalar;
         self
     }
 }
 
 impl DivAssign<f64> for Vec3f64 {
     fn div_assign(&mut self, scalar: f64) {
-        self.x /= scalar;
-        self.y /= scalar;
-        self.z /= scalar;
+        self[0] /= scalar;
+        self[1] /= scalar;
+        self[2] /= scalar;
     }
 }
 
@@ -201,61 +150,180 @@ mod tests {
     use crate::vec::vec3f64::Vec3f64;
 
     #[test]
-    fn vector_addition() {
-        let two = Vec3f64::one() + Vec3f64::one();
-        assert_eq!(two.x, 2.0);
-        assert_eq!(two.y, 2.0);
-        assert_eq!(two.z, 2.0);
+    fn vector_creation() {
+        let zero = Vec3f64::zero();
+        let ones = Vec3f64::ones();
+        let v = Vec3f64::new([2.0, 3.0, 4.0]);
+
+        assert_eq!(zero[0], 0.0);
+        assert_eq!(zero[1], 0.0);
+        assert_eq!(zero[2], 0.0);
+        assert_eq!(ones[0], 1.0);
+        assert_eq!(ones[1], 1.0);
+        assert_eq!(ones[2], 1.0);
+        assert_eq!(v[0], 2.0);
+        assert_eq!(v[1], 3.0);
+        assert_eq!(v[2], 4.0);
     }
 
     #[test]
-    fn vector_subtraction() {
-        let zero = Vec3f64::one() - Vec3f64::one();
-        assert_eq!(zero.x, 0.0);
-        assert_eq!(zero.y, 0.0);
-        assert_eq!(zero.z, 0.0);
+    fn mag_and_mag_squared() {
+        let zero = Vec3f64::zero();
+        let ones = Vec3f64::ones();
+        let v = Vec3f64::new([4.0, 7.0, 5.0]);
+
+        assert_eq!(zero.mag(), 0.0);
+        assert_eq!(ones.mag(), 3.0f64.sqrt());
+        assert_eq!(v.mag(), (4.0 * 4.0 + 7.0 * 7.0 + 5.0 * 5.0f64).sqrt());
+
+        assert_eq!(zero.mag_squared(), 0.0);
+        assert_eq!(ones.mag_squared(), 3.0f64);
+        assert_eq!(v.mag_squared(), 4.0 * 4.0 + 7.0 * 7.0f64 + 5.0 * 5.0f64);
+    }
+
+    #[test]
+    fn norm_and_normed() {
+        // Zero vec
+        let mut zero = Vec3f64::zero();
+        let normed = zero.normed();
+        zero.norm();
+        assert!(normed[0].is_nan());
+        assert!(normed[1].is_nan());
+        assert!(normed[2].is_nan());
+        assert!(zero[0].is_nan());
+        assert!(zero[1].is_nan());
+        assert!(zero[2].is_nan());
+
+        // Nonzero vecs
+        let mut ones = Vec3f64::ones();
+        let normed = ones.normed();
+        ones.norm();
+        assert!((0.99999..1.000001).contains(&ones.mag()));
+        assert!((0.99999..1.000001).contains(&normed.mag()));
+
+        let mut v = Vec3f64::new([4.0, 7.0, 5.0]);
+        let normed = v.normed();
+        v.norm();
+        assert!((0.99999..1.000001).contains(&v.mag()));
+        assert!((0.99999..1.000001).contains(&normed.mag()));
+    }
+
+    #[test]
+    fn dot() {
+        let zero = Vec3f64::zero();
+        let ones = Vec3f64::ones();
+        let v = Vec3f64::new([4.0, 7.0, 5.0]);
+
+        let dot = zero.dot(v);
+        assert_eq!(dot, 0.0);
+
+        let dot = v.dot(zero);
+        assert_eq!(dot, 0.0);
+
+        let dot = ones.dot(v);
+        assert_eq!(dot, 16.0);
+
+        let dot = v.dot(ones);
+        assert_eq!(dot, 16.0);
+
+        let dot = v.dot(v);
+        assert_eq!(dot, 16.0 + 49.0 + 25.0);
     }
 
     #[test]
     fn scalar_multiplication() {
-        let one = Vec3f64::one();
-        let two = one * 2.0;
-        assert_eq!(two.x, 2.0);
-        assert_eq!(two.y, 2.0);
-        assert_eq!(two.z, 2.0);
-        assert_eq!(one.x, 1.0);
-        assert_eq!(one.y, 1.0);
-        assert_eq!(one.z, 1.0);
+        let zero = Vec3f64::zero();
+        let ones = Vec3f64::ones();
+        let mut v = Vec3f64::new([4.0, 7.0, 5.0]);
 
-        let one = Vec3f64::one();
-        let two = 2.0 * one;
-        assert_eq!(two.x, 2.0);
-        assert_eq!(two.y, 2.0);
-        assert_eq!(two.z, 2.0);
-        assert_eq!(one.x, 1.0);
-        assert_eq!(one.y, 1.0);
-        assert_eq!(one.z, 1.0);
+        let w = 3.0 * zero;
+        assert_eq!(w[0], 0.0);
+        assert_eq!(w[1], 0.0);
+        assert_eq!(w[2], 0.0);
+
+        let w = zero * 3.0;
+        assert_eq!(w[0], 0.0);
+        assert_eq!(w[1], 0.0);
+        assert_eq!(w[2], 0.0);
+
+        let w = 3.0 * ones;
+        assert_eq!(w[0], 3.0);
+        assert_eq!(w[1], 3.0);
+        assert_eq!(w[2], 3.0);
+
+        let w = ones * 3.0;
+        assert_eq!(w[0], 3.0);
+        assert_eq!(w[1], 3.0);
+        assert_eq!(w[2], 3.0);
+
+        let w = 3.0 * v;
+        assert_eq!(w[0], 12.0);
+        assert_eq!(w[1], 21.0);
+        assert_eq!(w[2], 15.0);
+
+        let w = v * 3.0;
+        assert_eq!(w[0], 12.0);
+        assert_eq!(w[1], 21.0);
+        assert_eq!(w[2], 15.0);
+
+        v *= 3.0;
+        assert_eq!(v[0], 12.0);
+        assert_eq!(v[1], 21.0);
+        assert_eq!(v[2], 15.0);
     }
 
     #[test]
     fn scalar_division() {
-        let one = Vec3f64::one();
-        let half = one / 2.0;
-        assert_eq!(half.x, 0.5);
-        assert_eq!(half.y, 0.5);
-        assert_eq!(half.z, 0.5);
-        assert_eq!(one.x, 1.0);
-        assert_eq!(one.y, 1.0);
-        assert_eq!(one.z, 1.0);
+        let zero = Vec3f64::zero();
+        let ones = Vec3f64::ones();
+        let mut v = Vec3f64::new([4.0, 7.0, 5.0]);
+
+        let w = zero / 3.0;
+        assert_eq!(w[0], 0.0);
+        assert_eq!(w[1], 0.0);
+        assert_eq!(w[2], 0.0);
+
+        let w = ones / 3.0;
+        assert_eq!(w[0], 1.0 / 3.0);
+        assert_eq!(w[1], 1.0 / 3.0);
+        assert_eq!(w[2], 1.0 / 3.0);
+
+        let w = v / 3.0;
+        assert_eq!(w[0], 4.0 / 3.0);
+        assert_eq!(w[1], 7.0 / 3.0);
+        assert_eq!(w[2], 5.0 / 3.0);
+
+        v /= 3.0;
+        assert_eq!(v[0], 4.0 / 3.0);
+        assert_eq!(v[1], 7.0 / 3.0);
+        assert_eq!(v[2], 5.0 / 3.0);
     }
 
     #[test]
-    fn cross() {
-        let left = Vec3f64::new(2.5, 1.5, 0.5);
-        let right = Vec3f64::new(3.2, 2.2, 1.1);
-        let cross = left.cross(right);
-        assert!((0.54..0.56).contains(&cross.x));
-        assert!((-1.16..-1.14).contains(&cross.y));
-        assert!((0.69..0.71).contains(&cross.z));
+    fn vector_addition() {
+        let mut v = Vec3f64::new([4.0, 7.0, 5.0]);
+        let w = Vec3f64::new([-2.0, 10.0, 2.0]);
+        let r = v + w;
+        assert_eq!(r[0], 2.0);
+        assert_eq!(r[1], 17.0);
+        assert_eq!(r[2], 7.0);
+        v += w;
+        assert_eq!(v[0], 2.0);
+        assert_eq!(v[1], 17.0);
+        assert_eq!(v[2], 7.0);
+    }
+
+    #[test]
+    fn vector_subtraction() {
+        let mut v = Vec3f64::new([4.0, 7.0, 5.0]);
+        let w = Vec3f64::new([-2.0, 10.0, 2.0]);
+        let r = v - w;
+        assert_eq!(r[0], 6.0);
+        assert_eq!(r[1], -3.0);
+        assert_eq!(r[2], 3.0);
+        v -= w;
+        assert_eq!(v[0], 6.0);
+        assert_eq!(v[1], -3.0);
+        assert_eq!(v[2], 3.0);
     }
 }

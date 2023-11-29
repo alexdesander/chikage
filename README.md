@@ -4,6 +4,8 @@
 # chikage
 Simple, easy to understand and barebones math library for game and graphics development.
 
+⚠️ early in development ⚠️
+
 <p align="center">
   <img src="./chikage_logo.png" width="25%"/>
 </p>
@@ -11,8 +13,7 @@ Simple, easy to understand and barebones math library for game and graphics deve
 ## Features
 
 - 2-4D floating point vectors
-- Square floating point matrices of order 2-4
-- 3D floating point rotors (understandable quaternions)
+- Square floating point matrices of orders 2-4
 
 ## Goals
 
@@ -23,17 +24,10 @@ Simple, easy to understand and barebones math library for game and graphics deve
   - Documented functionality
 - Barebones
 - Comprehensive unit tests
-- No dependencies (exception: std)
-- Provide few buildings but all building blocks. Examples:
-  - Chikage provides 4D square matrices, but no projection matrix.
-  - Chikage provides multivectors, but also rotors (reasoning: optimization and simplicity for the end user) (NOT YET IMPLEMENTED).
+- No dependencies (only for specific features) (exception: std)
 
 ## Planned features
 - ✅ 2-4D floating point vectors
 - ✅ floating point square matrices of order 2-4
-- ⬜️ 2-4D floating point rotors
-    - ✔ 3D rotor
-    - ✖ 2D rotor
-    - ✖ 4D rotor
-- ⬜️ More geometric algebra in 2-4D (details to be decided)
+- ⬜️ Geometric algebra in 2-4D (details to be decided)
 - (Featureset is open ended)

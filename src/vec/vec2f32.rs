@@ -1,121 +1,141 @@
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign};
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+/// A two dimensional vector.
+#[derive(Debug, Clone, Copy)]
 pub struct Vec2f32 {
-    pub x: f32,
-    pub y: f32,
+    pub coords: [f32; 2],
 }
 
 impl Vec2f32 {
-    pub fn new(x: f32, y: f32) -> Self {
-        Self { x, y }
+    /// Create a new vector with user defined components.
+    pub fn new(coords: [f32; 2]) -> Self {
+        Self { coords }
     }
 
+    /// Create a new vector with all components equal to 0.0.
     pub fn zero() -> Self {
-        Self { x: 0.0, y: 0.0 }
+        Self::new([0.0, 0.0])
     }
 
-    pub fn one() -> Self {
-        Self { x: 1.0, y: 1.0 }
+    /// Create a new vector with all components equal to 1.0.
+    pub fn ones() -> Self {
+        Self::new([1.0, 1.0])
     }
 
-    pub fn magnitude(&self) -> f32 {
-        (self.x * self.x + self.y * self.y).sqrt()
+    /// The magnitude of the vector (also known as length).
+    pub fn mag(&self) -> f32 {
+        self.mag_squared().sqrt()
     }
 
-    pub fn magnitude_squared(&self) -> f32 {
-        self.x * self.x + self.y * self.y
+    /// The magnitude of the vector (also known as length), but squared.
+    /// This is faster to compute than mag() and useful in some situations.
+    pub fn mag_squared(&self) -> f32 {
+        self[0] * self[0] + self[1] * self[1]
     }
 
-    pub fn normalize(&mut self) {
-        let mag = self.magnitude();
-        self.x /= mag;
-        self.y /= mag;
+    /// Normalizes self
+    /// This makes the vector a unit vector.
+    pub fn norm(&mut self) {
+        let mag = self.mag();
+        *self /= mag;
     }
 
-    pub fn normalized(&self) -> Self {
-        let mag = self.magnitude();
-        Self {
-            x: self.x / mag,
-            y: self.y / mag,
-        }
+    /// Return self but as a normalized vector.
+    /// This returns a unit vector.
+    pub fn normed(&self) -> Self {
+        let mag = self.mag();
+        *self / mag
     }
 
-    pub fn dot(&self, other: Vec2f32) -> f32 {
-        self.x * other.x + self.y * other.y
+    /// Calculate the dot product between self and other.
+    pub fn dot(&self, other: Self) -> f32 {
+        self[0] * other[0] + self[1] * other[1]
+    }
+}
+
+impl Index<usize> for Vec2f32 {
+    type Output = f32;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.coords[index]
+    }
+}
+
+impl IndexMut<usize> for Vec2f32 {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.coords[index]
     }
 }
 
 impl Add<Vec2f32> for Vec2f32 {
     type Output = Vec2f32;
     fn add(mut self, rhs: Vec2f32) -> Self::Output {
-        self.x += rhs.x;
-        self.y += rhs.y;
+        self[0] += rhs[0];
+        self[1] += rhs[1];
         self
     }
 }
 
 impl AddAssign<Vec2f32> for Vec2f32 {
     fn add_assign(&mut self, rhs: Vec2f32) {
-        self.x += rhs.x;
-        self.y += rhs.y;
+        *self = *self + rhs;
     }
 }
 
 impl Sub<Vec2f32> for Vec2f32 {
     type Output = Vec2f32;
     fn sub(mut self, rhs: Vec2f32) -> Self::Output {
-        self.x -= rhs.x;
-        self.y -= rhs.y;
+        self[0] -= rhs[0];
+        self[1] -= rhs[1];
         self
     }
 }
 
 impl SubAssign<Vec2f32> for Vec2f32 {
     fn sub_assign(&mut self, rhs: Vec2f32) {
-        self.x -= rhs.x;
-        self.y -= rhs.y;
-    }
-}
-
-impl Mul<f32> for Vec2f32 {
-    type Output = Vec2f32;
-    fn mul(mut self, scalar: f32) -> Self::Output {
-        self.x *= scalar;
-        self.y *= scalar;
-        self
+        *self = *self - rhs;
     }
 }
 
 impl Mul<Vec2f32> for f32 {
     type Output = Vec2f32;
-    fn mul(self, mut vec: Vec2f32) -> Self::Output {
-        vec.x *= self;
-        vec.y *= self;
-        vec
+
+    fn mul(self, mut v: Vec2f32) -> Self::Output {
+        v[0] *= self;
+        v[1] *= self;
+        v
+    }
+}
+
+impl Mul<f32> for Vec2f32 {
+    type Output = Vec2f32;
+
+    fn mul(self, scalar: f32) -> Self::Output {
+        scalar * self
     }
 }
 
 impl MulAssign<f32> for Vec2f32 {
     fn mul_assign(&mut self, scalar: f32) {
-        self.x *= scalar;
-        self.y *= scalar;
+        self[0] *= scalar;
+        self[1] *= scalar;
     }
 }
 
 impl Div<f32> for Vec2f32 {
     type Output = Vec2f32;
+
     fn div(mut self, scalar: f32) -> Self::Output {
-        self.x /= scalar;
-        self.y /= scalar;
+        self[0] /= scalar;
+        self[1] /= scalar;
         self
     }
 }
 
 impl DivAssign<f32> for Vec2f32 {
     fn div_assign(&mut self, scalar: f32) {
-        self.x /= scalar;
-        self.y /= scalar;
+        self[0] /= scalar;
+        self[1] /= scalar;
     }
 }
 
@@ -124,43 +144,160 @@ mod tests {
     use crate::vec::vec2f32::Vec2f32;
 
     #[test]
-    fn vector_addition() {
-        let two = Vec2f32::one() + Vec2f32::one();
-        assert_eq!(two.x, 2.0);
-        assert_eq!(two.y, 2.0);
+    fn vector_creation() {
+        let zero = Vec2f32::zero();
+        let ones = Vec2f32::ones();
+        let v = Vec2f32::new([2.0, 3.0]);
+
+        assert_eq!(zero[0], 0.0);
+        assert_eq!(zero[1], 0.0);
+        assert_eq!(ones[0], 1.0);
+        assert_eq!(ones[1], 1.0);
+        assert_eq!(v[0], 2.0);
+        assert_eq!(v[1], 3.0);
     }
 
     #[test]
-    fn vector_subtraction() {
-        let zero = Vec2f32::one() - Vec2f32::one();
-        assert_eq!(zero.x, 0.0);
-        assert_eq!(zero.y, 0.0);
+    fn mag_and_mag_squared() {
+        let zero = Vec2f32::zero();
+        let ones = Vec2f32::ones();
+        let v = Vec2f32::new([4.0, 7.0]);
+
+        assert_eq!(zero.mag(), 0.0);
+        assert_eq!(ones.mag(), 2.0f32.sqrt());
+        assert_eq!(v.mag(), (4.0 * 4.0 + 7.0 * 7.0f32).sqrt());
+
+        assert_eq!(zero.mag_squared(), 0.0);
+        assert_eq!(ones.mag_squared(), 2.0f32);
+        assert_eq!(v.mag_squared(), 4.0 * 4.0 + 7.0 * 7.0f32);
+    }
+
+    #[test]
+    fn norm_and_normed() {
+        // Zero vec
+        let mut zero = Vec2f32::zero();
+        let normed = zero.normed();
+        zero.norm();
+        assert!(normed[0].is_nan());
+        assert!(normed[1].is_nan());
+        assert!(zero[0].is_nan());
+        assert!(zero[1].is_nan());
+
+        // Nonzero vecs
+        let mut ones = Vec2f32::ones();
+        let normed = ones.normed();
+        ones.norm();
+        assert!((0.99999..1.000001).contains(&ones.mag()));
+        assert!((0.99999..1.000001).contains(&normed.mag()));
+
+        let mut v = Vec2f32::new([4.0, 7.0]);
+        let normed = v.normed();
+        v.norm();
+        assert!((0.99999..1.000001).contains(&v.mag()));
+        assert!((0.99999..1.000001).contains(&normed.mag()));
+    }
+
+    #[test]
+    fn dot() {
+        let zero = Vec2f32::zero();
+        let ones = Vec2f32::ones();
+        let v = Vec2f32::new([4.0, 7.0]);
+
+        let dot = zero.dot(v);
+        assert_eq!(dot, 0.0);
+
+        let dot = v.dot(zero);
+        assert_eq!(dot, 0.0);
+
+        let dot = ones.dot(v);
+        assert_eq!(dot, 11.0);
+
+        let dot = v.dot(ones);
+        assert_eq!(dot, 11.0);
+
+        let dot = v.dot(v);
+        assert_eq!(dot, 16.0 + 49.0);
     }
 
     #[test]
     fn scalar_multiplication() {
-        let one = Vec2f32::one();
-        let two = one * 2.0;
-        assert_eq!(two.x, 2.0);
-        assert_eq!(two.y, 2.0);
-        assert_eq!(one.x, 1.0);
-        assert_eq!(one.y, 1.0);
+        let zero = Vec2f32::zero();
+        let ones = Vec2f32::ones();
+        let mut v = Vec2f32::new([4.0, 7.0]);
 
-        let one = Vec2f32::one();
-        let two = 2.0 * one;
-        assert_eq!(two.x, 2.0);
-        assert_eq!(two.y, 2.0);
-        assert_eq!(one.x, 1.0);
-        assert_eq!(one.y, 1.0);
+        let w = 3.0 * zero;
+        assert_eq!(w[0], 0.0);
+        assert_eq!(w[1], 0.0);
+
+        let w = zero * 3.0;
+        assert_eq!(w[0], 0.0);
+        assert_eq!(w[1], 0.0);
+
+        let w = 3.0 * ones;
+        assert_eq!(w[0], 3.0);
+        assert_eq!(w[1], 3.0);
+
+        let w = ones * 3.0;
+        assert_eq!(w[0], 3.0);
+        assert_eq!(w[1], 3.0);
+
+        let w = 3.0 * v;
+        assert_eq!(w[0], 12.0);
+        assert_eq!(w[1], 21.0);
+
+        let w = v * 3.0;
+        assert_eq!(w[0], 12.0);
+        assert_eq!(w[1], 21.0);
+
+        v *= 3.0;
+        assert_eq!(v[0], 12.0);
+        assert_eq!(v[1], 21.0);
     }
 
     #[test]
     fn scalar_division() {
-        let one = Vec2f32::one();
-        let half = one / 2.0;
-        assert_eq!(half.x, 0.5);
-        assert_eq!(half.y, 0.5);
-        assert_eq!(one.x, 1.0);
-        assert_eq!(one.y, 1.0);
+        let zero = Vec2f32::zero();
+        let ones = Vec2f32::ones();
+        let mut v = Vec2f32::new([4.0, 7.0]);
+
+        let w = zero / 3.0;
+        assert_eq!(w[0], 0.0);
+        assert_eq!(w[1], 0.0);
+
+        let w = ones / 3.0;
+        assert_eq!(w[0], 1.0 / 3.0);
+        assert_eq!(w[1], 1.0 / 3.0);
+
+        let w = v / 3.0;
+        assert_eq!(w[0], 4.0 / 3.0);
+        assert_eq!(w[1], 7.0 / 3.0);
+
+        v /= 3.0;
+        assert_eq!(v[0], 4.0 / 3.0);
+        assert_eq!(v[1], 7.0 / 3.0);
+    }
+
+    #[test]
+    fn vector_addition() {
+        let mut v = Vec2f32::new([4.0, 7.0]);
+        let w = Vec2f32::new([-2.0, 10.0]);
+        let r = v + w;
+        assert_eq!(r[0], 2.0);
+        assert_eq!(r[1], 17.0);
+        v += w;
+        assert_eq!(v[0], 2.0);
+        assert_eq!(v[1], 17.0);
+    }
+
+    #[test]
+    fn vector_subtraction() {
+        let mut v = Vec2f32::new([4.0, 7.0]);
+        let w = Vec2f32::new([-2.0, 10.0]);
+        let r = v - w;
+        assert_eq!(r[0], 6.0);
+        assert_eq!(r[1], -3.0);
+        v -= w;
+        assert_eq!(v[0], 6.0);
+        assert_eq!(v[1], -3.0);
     }
 }
