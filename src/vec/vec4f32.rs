@@ -35,6 +35,10 @@ impl Vec4f32 {
         (self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w).sqrt()
     }
 
+    pub fn magnitude_squared(&self) -> f32 {
+        self.x * self.x + self.y * self.y + self.z * self.z + self.w * self.w
+    }
+
     pub fn normalize(&mut self) {
         let mag = self.magnitude();
         self.x /= mag;

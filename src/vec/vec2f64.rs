@@ -23,6 +23,10 @@ impl Vec2f64 {
         (self.x * self.x + self.y * self.y).sqrt()
     }
 
+    pub fn magnitude_squared(&self) -> f64 {
+        self.x * self.x + self.y * self.y
+    }
+
     pub fn normalize(&mut self) {
         let mag = self.magnitude();
         self.x /= mag;

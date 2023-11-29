@@ -32,6 +32,10 @@ impl Vec3f32 {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
     }
 
+    pub fn magnitude_squared(&self) -> f32 {
+        self.x * self.x + self.y * self.y + self.z * self.z
+    }
+
     pub fn normalize(&mut self) {
         let mag = self.magnitude();
         self.x /= mag;
@@ -58,6 +62,55 @@ impl Vec3f32 {
             y: self.z * right.x - self.x * right.z,
             z: self.x * right.y - self.y * right.x,
         }
+    }
+
+    /// Generates an arbitrary unit (normalized) vector that is perpendicular to self.
+    /// Make sure self is not 0
+    pub fn perpendicular(&self) -> Self {
+        debug_assert!(self.magnitude() != 0.0);
+
+        // 1
+        let mut result = Self::new(0.0, 0.0, 0.0);
+
+        // 2
+        let m = if self.x != 0.0 {
+            0
+        } else if self.y != 0.0 {
+            1
+        } else {
+            2
+        };
+        let n = (m + 1) % 3;
+
+        // 3
+        let x_m = match m {
+            0 => self.x,
+            1 => self.y,
+            2 => self.z,
+            _ => panic!(),
+        };
+        let x_n = match n {
+            0 => self.x,
+            1 => self.y,
+            2 => self.z,
+            _ => panic!(),
+        };
+        match n {
+            0 => result.x = x_m,
+            1 => result.y = x_m,
+            2 => result.z = x_m,
+            _ => {}
+        }
+        match m {
+            0 => result.x = -x_n,
+            1 => result.y = -x_n,
+            2 => result.z = -x_n,
+            _ => {}
+        }
+
+        // 4
+        result.normalize();
+        result
     }
 }
 
