@@ -9,6 +9,9 @@ keywords = ["gamedev", "graphics", "math", "matrix", "rotor"]
 categories = ["mathematics", "rendering", "game-development"]
 homepage = "https://github.com/alexdesander/chikage"
 repository = "https://github.com/alexdesander/chikage"
+exclude = [
+    "chikage_logo.png",
+]
 
 [dependencies]
 bitcode = { version = "0.6", optional = true }
