@@ -1,7 +1,7 @@
 [package]
 name = "chikage"
 authors = ["alexdesander"]
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "MIT"
 description = "Simple, easy to understand and barebones math library for game and graphics development."
