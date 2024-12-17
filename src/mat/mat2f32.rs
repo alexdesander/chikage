@@ -5,6 +5,8 @@ use crate::vec::vec2f32::Vec2f32;
 /// A 2x2 floating point matrix.
 /// Indexing follows row major order, like in most mathematical texts.
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "bitcode", derive(bitcode::Encode, bitcode::Decode))]
 pub struct Mat2f32 {
     pub rows: [[f32; 2]; 2],
 }

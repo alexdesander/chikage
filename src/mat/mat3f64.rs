@@ -5,6 +5,8 @@ use crate::vec::vec3f64::Vec3f64;
 /// A 3x3 floating point matrix.
 /// Indexing follows row major order, like in most mathematical texts.
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "bitcode", derive(bitcode::Encode, bitcode::Decode))]
 pub struct Mat3f64 {
     pub rows: [[f64; 3]; 3],
 }

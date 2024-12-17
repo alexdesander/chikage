@@ -11,3 +11,9 @@ homepage = "https://github.com/alexdesander/chikage"
 repository = "https://github.com/alexdesander/chikage"
 
 [dependencies]
+bitcode = { version = "0.6", optional = true }
+serde = { version = "1", features = ["derive"], optional = true }
+
+[features]
+serde = ["dep:serde"]
+bitcode = ["dep:bitcode"]

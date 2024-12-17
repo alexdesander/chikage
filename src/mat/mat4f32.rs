@@ -5,6 +5,8 @@ use crate::vec::vec4f32::Vec4f32;
 /// A 4x4 floating point matrix.
 /// Indexing follows row major order, like in most mathematical texts.
 #[derive(Debug, Clone, Copy)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "bitcode", derive(bitcode::Encode, bitcode::Decode))]
 pub struct Mat4f32 {
     pub rows: [[f32; 4]; 4],
 }
