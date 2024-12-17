@@ -1,6 +1,6 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign};
 
-/// A three dimensional vector.
+/// A four dimensional vector.
 #[derive(Debug, Clone, Copy)]
 pub struct Vec4f32 {
     pub coords: [f32; 4],

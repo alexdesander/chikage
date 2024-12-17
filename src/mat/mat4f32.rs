@@ -2,7 +2,7 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, 
 
 use crate::vec::vec4f32::Vec4f32;
 
-/// A 2x2 floating point matrix.
+/// A 4x4 floating point matrix.
 /// Indexing follows row major order, like in most mathematical texts.
 #[derive(Debug, Clone, Copy)]
 pub struct Mat4f32 {
